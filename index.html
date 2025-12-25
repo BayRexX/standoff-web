@@ -34,7 +34,7 @@ body {
     z-index: 1;
 }
 
-/* Джойстик для движения */
+/* Джойстик движения */
 #moveJoystick {
     position: fixed;
     left: 20px;
@@ -182,22 +182,6 @@ body {
     text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
 }
 
-.menu-content h2 {
-    color: #2196F3;
-    margin: 20px 0 10px;
-}
-
-.controls-list {
-    text-align: left;
-    margin: 20px 0;
-    padding: 0 20px;
-}
-
-.controls-list li {
-    margin: 10px 0;
-    color: #ddd;
-}
-
 .btn {
     background: linear-gradient(to bottom, #2196F3, #1976D2);
     color: white;
@@ -229,56 +213,6 @@ body {
     box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
 }
 
-.btn-danger {
-    background: linear-gradient(to bottom, #f44336, #d32f2f);
-    box-shadow: 0 4px 15px rgba(244, 67, 54, 0.3);
-}
-
-.btn-danger:hover {
-    background: linear-gradient(to bottom, #d32f2f, #b71c1c);
-    box-shadow: 0 6px 20px rgba(244, 67, 54, 0.4);
-}
-
-.input-group {
-    margin: 20px 0;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 15px;
-    border: 2px solid #2196F3;
-    border-radius: 8px;
-    background: rgba(255, 255, 255, 0.1);
-    color: white;
-    font-size: 16px;
-    text-align: center;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: #4CAF50;
-    box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
-}
-
-.server-list {
-    margin: 20px 0;
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-.server-item {
-    background: rgba(255, 255, 255, 0.1);
-    margin: 5px 0;
-    padding: 10px;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.server-item:hover {
-    background: rgba(255, 255, 255, 0.2);
-}
-
 .hidden {
     display: none !important;
 }
@@ -302,25 +236,6 @@ body {
     from { transform: translate(-50%, 100px); opacity: 0; }
     to { transform: translate(-50%, 0); opacity: 1; }
 }
-
-/* Кнопка паузы */
-#pauseBtn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 50px;
-    height: 50px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.2);
-    border: 2px solid rgba(255, 255, 255, 0.3);
-    color: white;
-    font-size: 24px;
-    z-index: 100;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
 </style>
 </head>
 <body>
@@ -328,93 +243,61 @@ body {
 <!-- Меню -->
 <div id="menu">
     <div class="menu-content">
-        <h1>🎯 FPS Multiplayer</h1>
+        <h1>🎯 FPS Multiplayer Shooter</h1>
+        <p style="margin-bottom: 20px; color: #ccc;">Подключение к вашему серверу</p>
         
-        <div id="mainMenu">
-            <button class="btn btn-success" onclick="showScreen('connectScreen')">🕹️ Играть онлайн</button>
-            <button class="btn" onclick="showScreen('controlsScreen')">🎮 Управление</button>
-            <button class="btn" onclick="showScreen('aboutScreen')">ℹ️ Об игре</button>
-        </div>
-
-        <div id="connectScreen" class="hidden">
-            <h2>Подключение к серверу</h2>
-            <div class="input-group">
-                <input type="text" id="serverInput" placeholder="ws://ваш-сервер:8080" value="wss://fps-multiplayer-server.onrender.com">
-                <small style="color: #aaa; display: block; margin-top: 5px;">Для теста используйте наш демо-сервер выше</small>
-            </div>
-            <button class="btn btn-success" onclick="connectToServer()">Подключиться</button>
-            <button class="btn" onclick="showScreen('mainMenu')">Назад</button>
-            
-            <div class="server-list" id="serverList">
-                <h3>Публичные серверы:</h3>
-                <div class="server-item" onclick="connectToServer('wss://fps-multiplayer-server.onrender.com')">
-                    🟢 Демо-сервер (Рекомендуется)
-                </div>
-            </div>
-        </div>
-
-        <div id="controlsScreen" class="hidden">
-            <h2>Управление</h2>
-            <div class="controls-list">
-                <p>✅ <strong>Левая часть экрана</strong> - джойстик для движения</p>
-                <p>✅ <strong>Правая часть экрана</strong> - поворот камеры (тач + движение)</p>
-                <p>✅ <strong>Красная кнопка справа</strong> - стрельба</p>
-                <p>✅ <strong>Одновременно можно:</strong> двигаться, поворачивать камеру и стрелять</p>
-                <p>✅ <strong>Цель:</strong> поражать других игроков, уворачиваться от их выстрелов</p>
-            </div>
-            <button class="btn" onclick="showScreen('mainMenu')">Назад</button>
-        </div>
-
-        <div id="aboutScreen" class="hidden">
-            <h2>Об игре</h2>
-            <p>Мобильный шутер от первого лица с мультиплеером.</p>
-            <p>Использует WebGL для графики и WebSocket для онлайн-игры.</p>
-            <p>Игра оптимизирована для мобильных устройств.</p>
-            <button class="btn" onclick="showScreen('mainMenu')">Назад</button>
-        </div>
-
-        <div id="gameUI" class="hidden">
-            <div id="ui">
-                <div>
-                    <span>❤️ Здоровье: <span id="healthText">100</span></span>
-                    <div class="health-bar">
-                        <div id="healthFill"></div>
-                    </div>
-                </div>
-                <div>
-                    <span>👥 Игроков: <span id="playersText">1</span></span>
-                    <br>
-                    <span>🎯 Убийств: <span id="killsText">0</span></span>
-                </div>
-            </div>
-            
-            <div id="crosshair"></div>
-            <div id="moveJoystick">
-                <div id="moveJoystickInner"></div>
-            </div>
-            <button id="shootBtn">🔫</button>
-            <button id="pauseBtn" onclick="showMenu()">⏸️</button>
-            
-            <canvas id="gameCanvas"></canvas>
-        </div>
+        <button class="btn btn-success" onclick="startGame()">🎮 НАЧАТЬ ИГРУ</button>
+        <p style="margin-top: 20px; color: #aaa; font-size: 14px;">
+            Сервер: wss://fps-game-server-raki.onrender.com
+        </p>
     </div>
 </div>
+
+<!-- Игровой интерфейс -->
+<div id="ui" class="hidden">
+    <div>
+        <span>❤️ Здоровье: <span id="healthText">100</span></span>
+        <div class="health-bar">
+            <div id="healthFill"></div>
+        </div>
+    </div>
+    <div>
+        <span>👥 Игроков: <span id="playersText">1</span></span>
+        <br>
+        <span>🎯 Убийств: <span id="killsText">0</span></span>
+    </div>
+</div>
+
+<div id="crosshair" class="hidden"></div>
+<div id="moveJoystick" class="hidden">
+    <div id="moveJoystickInner"></div>
+</div>
+<button id="shootBtn" class="hidden">🔫</button>
+
+<canvas id="gameCanvas"></canvas>
 
 <!-- Уведомление -->
 <div id="notification" class="hidden"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/three@0.155/build/three.min.js"></script>
 <script>
+/* ================= КОНФИГУРАЦИЯ ================= */
+const CONFIG = {
+    MOVE_SPEED: 0.12,
+    ROTATION_SPEED: 0.003,
+    PLAYER_HEIGHT: 1.7,
+    PLAYER_RADIUS: 0.4,
+    SHOOT_COOLDOWN: 300,
+    MAX_HEALTH: 100,
+    SERVER_URL: 'wss://fps-game-server-raki.onrender.com' // ВАШ СЕРВЕР!
+};
+
 /* ================= ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ================= */
 let scene, camera, renderer;
 let player, otherPlayers = new Map();
 let walls = [];
 let socket = null;
 let gameStarted = false;
-
-// Статистика
-let kills = 0;
-let deaths = 0;
 
 // Управление
 let moveX = 0, moveY = 0;
@@ -424,16 +307,143 @@ let touchId = null;
 let isShooting = false;
 let lastShootTime = 0;
 
-// Конфигурация
-const CONFIG = {
-    MOVE_SPEED: 0.12,
-    ROTATION_SPEED: 0.003,
-    PLAYER_HEIGHT: 1.7,
-    PLAYER_RADIUS: 0.4,
-    SHOOT_COOLDOWN: 300,
-    MAX_HEALTH: 100,
-    RESPAWN_TIME: 3000
-};
+// Статистика
+let kills = 0;
+let deaths = 0;
+
+/* ================= ЗАПУСК ИГРЫ ================= */
+function startGame() {
+    document.getElementById('menu').classList.add('hidden');
+    document.getElementById('ui').classList.remove('hidden');
+    document.getElementById('crosshair').classList.remove('hidden');
+    document.getElementById('moveJoystick').classList.remove('hidden');
+    document.getElementById('shootBtn').classList.remove('hidden');
+    
+    initGame();
+    connectToServer();
+}
+
+/* ================= ПОДКЛЮЧЕНИЕ К СЕРВЕРУ ================= */
+function connectToServer() {
+    showNotification('🔄 Подключение к серверу...');
+    
+    try {
+        socket = new WebSocket(CONFIG.SERVER_URL);
+        
+        socket.onopen = () => {
+            showNotification('✅ Подключено к серверу!');
+            console.log('WebSocket подключен');
+        };
+        
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                handleServerMessage(data);
+            } catch (error) {
+                console.error('Ошибка парсинга:', error);
+            }
+        };
+        
+        socket.onerror = (error) => {
+            console.error('WebSocket ошибка:', error);
+            showNotification('❌ Ошибка подключения');
+        };
+        
+        socket.onclose = () => {
+            console.log('WebSocket отключен');
+            showNotification('🔌 Отключено от сервера');
+            
+            // Удаляем других игроков
+            otherPlayers.forEach(otherPlayer => {
+                scene.remove(otherPlayer.mesh);
+            });
+            otherPlayers.clear();
+            updatePlayersCount();
+        };
+        
+    } catch (error) {
+        console.error('Ошибка подключения:', error);
+        showNotification('❌ Не удалось подключиться');
+    }
+}
+
+function handleServerMessage(data) {
+    switch (data.type) {
+        case 'welcome':
+            // Нас приветствует сервер
+            player.id = data.id;
+            player.name = data.name;
+            player.color = data.color;
+            player.health = data.health;
+            updateHealth();
+            
+            // Добавляем других игроков
+            if (data.players) {
+                data.players.forEach(p => {
+                    addOtherPlayer(p.id, p.position, p.rotation, p.health, p.color, p.name);
+                });
+            }
+            break;
+            
+        case 'player_join':
+            if (data.player && data.player.id !== player.id) {
+                addOtherPlayer(data.player.id, data.player.position, data.player.rotation, 
+                              data.player.health, data.player.color, data.player.name);
+            }
+            break;
+            
+        case 'player_leave':
+            removeOtherPlayer(data.id);
+            break;
+            
+        case 'player_update':
+            if (data.id !== player.id) {
+                updateOtherPlayer(data.id, data.position, data.rotation, data.health);
+            }
+            break;
+            
+        case 'player_hit':
+            if (data.target === player.id) {
+                // Нас ударили
+                player.health = Math.max(0, data.health);
+                updateHealth();
+                
+                if (player.health <= 0) {
+                    showNotification('💀 Вы погибли! Респавн...');
+                    setTimeout(() => {
+                        player.health = CONFIG.MAX_HEALTH;
+                        updateHealth();
+                    }, 3000);
+                }
+            } else if (otherPlayers.has(data.target)) {
+                // Кого-то ударили
+                const otherPlayer = otherPlayers.get(data.target);
+                otherPlayer.health = data.health;
+            }
+            break;
+            
+        case 'kill':
+            // Мы убили кого-то
+            kills++;
+            updateKills();
+            showNotification('🎉 Вы убили игрока! +1 убийство');
+            break;
+            
+        case 'death':
+            // Нас убили
+            deaths++;
+            showNotification(`☠️ Вас убил: ${data.killerName}`);
+            break;
+            
+        case 'player_shoot':
+            // Кто-то стреляет
+            if (otherPlayers.has(data.id)) {
+                const otherPlayer = otherPlayers.get(data.id);
+                // Можно добавить визуальный эффект выстрела
+            }
+            break;
+    }
+}
 
 /* ================= ИНИЦИАЛИЗАЦИЯ ИГРЫ ================= */
 function initGame() {
@@ -446,7 +456,10 @@ function initGame() {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
     // Создаем рендерер
-    renderer = new THREE.WebGLRenderer({ canvas: document.getElementById('gameCanvas'), antialias: true });
+    renderer = new THREE.WebGLRenderer({ 
+        canvas: document.getElementById('gameCanvas'), 
+        antialias: true 
+    });
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -458,9 +471,9 @@ function initGame() {
     sun.castShadow = true;
     scene.add(sun);
 
-    // Создаем пол
+    // Пол
     const floor = new THREE.Mesh(
-        new THREE.PlaneGeometry(200, 200, 50, 50),
+        new THREE.PlaneGeometry(200, 200),
         new THREE.MeshStandardMaterial({ 
             color: 0x3a5f0b,
             roughness: 0.8
@@ -470,10 +483,10 @@ function initGame() {
     floor.receiveShadow = true;
     scene.add(floor);
 
-    // Создаем стены и препятствия
+    // Стены
     createWalls();
     
-    // Создаем небо
+    // Небо
     const skyGeometry = new THREE.SphereGeometry(500, 32, 32);
     const skyMaterial = new THREE.MeshBasicMaterial({
         color: 0x87CEEB,
@@ -484,16 +497,17 @@ function initGame() {
 
     // Создаем локального игрока
     player = {
-        id: 'player_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        id: '',
+        name: '',
         position: new THREE.Vector3(0, CONFIG.PLAYER_HEIGHT, 5),
         rotation: { yaw: 0, pitch: 0 },
         health: CONFIG.MAX_HEALTH,
+        color: 0xff0000,
         isMoving: false,
-        mesh: createPlayerMesh(0xff0000) // Красный цвет для себя
+        mesh: null
     };
-    scene.add(player.mesh);
 
-    // Создаем оружие
+    // Оружие
     createWeapon();
 
     // Настраиваем управление
@@ -506,7 +520,6 @@ function initGame() {
     window.addEventListener('resize', onWindowResize);
 }
 
-/* ================= СОЗДАНИЕ СТЕН ================= */
 function createWalls() {
     const wallMaterial = new THREE.MeshStandardMaterial({ 
         color: 0x8a8a8a,
@@ -533,7 +546,7 @@ function createWalls() {
         walls.push(new THREE.Box3().setFromObject(wall));
     });
 
-    // Внутренние препятствия
+    // Препятствия
     const obstacles = [
         [-15, -15, 4, 4, 4],
         [15, -15, 4, 4, 4],
@@ -555,48 +568,20 @@ function createWalls() {
     });
 }
 
-/* ================= СОЗДАНИЕ ИГРОКА ================= */
-function createPlayerMesh(color) {
-    const group = new THREE.Group();
-
-    // Тело (цилиндр)
-    const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8);
-    const bodyMaterial = new THREE.MeshStandardMaterial({ color: color });
-    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
-    body.position.y = 0.6;
-    body.castShadow = true;
-
-    // Голова (сфера)
-    const headGeometry = new THREE.SphereGeometry(0.25, 8, 8);
-    const headMaterial = new THREE.MeshStandardMaterial({ color: 0xf0f0f0 });
-    const head = new THREE.Mesh(headGeometry, headMaterial);
-    head.position.y = 1.5;
-    head.castShadow = true;
-
-    group.add(body);
-    group.add(head);
-    
-    return group;
-}
-
-/* ================= СОЗДАНИЕ ОРУЖИЯ ================= */
 function createWeapon() {
     const gunGroup = new THREE.Group();
     
-    // Ствол
     const barrel = new THREE.Mesh(
         new THREE.CylinderGeometry(0.05, 0.05, 0.8, 8),
         new THREE.MeshStandardMaterial({ color: 0x111111 })
     );
     barrel.rotation.x = Math.PI / 2;
     
-    // Основание
     const body = new THREE.Mesh(
         new THREE.BoxGeometry(0.25, 0.15, 0.9),
         new THREE.MeshStandardMaterial({ color: 0x222222 })
     );
     
-    // Рукоять
     const handle = new THREE.Mesh(
         new THREE.BoxGeometry(0.15, 0.3, 0.2),
         new THREE.MeshStandardMaterial({ color: 0x333333 })
@@ -604,9 +589,7 @@ function createWeapon() {
     handle.position.y = -0.2;
     handle.position.z = -0.1;
     
-    gunGroup.add(barrel);
-    gunGroup.add(body);
-    gunGroup.add(handle);
+    gunGroup.add(barrel, body, handle);
     gunGroup.position.set(0.4, -0.3, -1);
     
     camera.add(gunGroup);
@@ -618,7 +601,7 @@ function setupControls() {
     const joystickInner = document.getElementById('moveJoystickInner');
     const shootBtn = document.getElementById('shootBtn');
 
-    // Джойстик для движения
+    // Джойстик движения
     joystick.addEventListener('touchstart', handleJoystickStart);
     joystick.addEventListener('touchmove', handleJoystickMove);
     joystick.addEventListener('touchend', handleJoystickEnd);
@@ -635,7 +618,7 @@ function setupControls() {
         isShooting = false;
     });
 
-    // Поворот камеры (правая часть экрана)
+    // Поворот камеры
     document.addEventListener('touchstart', handleCameraStart);
     document.addEventListener('touchmove', handleCameraMove);
     document.addEventListener('touchend', handleCameraEnd);
@@ -663,7 +646,6 @@ function handleJoystickMove(e) {
     moveX = (touch.clientX - centerX) / (rect.width / 2);
     moveY = (touch.clientY - centerY) / (rect.height / 2);
     
-    // Ограничение окружностью
     const length = Math.sqrt(moveX * moveX + moveY * moveY);
     if (length > 1) {
         moveX /= length;
@@ -688,12 +670,10 @@ function handleCameraStart(e) {
         const touch = e.touches[i];
         const target = document.elementFromPoint(touch.clientX, touch.clientY);
         
-        // Пропускаем джойстик и кнопку стрельбы
         if (target.closest('#moveJoystick') || target.closest('#shootBtn')) {
             continue;
         }
         
-        // Правая половина экрана для поворота
         if (touch.clientX > window.innerWidth / 2 && !isRotating) {
             isRotating = true;
             touchId = touch.identifier;
@@ -705,7 +685,7 @@ function handleCameraStart(e) {
 }
 
 function handleCameraMove(e) {
-    if (!isRotating || !gameStarted) return;
+    if (!isRotating) return;
     
     for (let i = 0; i < e.touches.length; i++) {
         const touch = e.touches[i];
@@ -735,9 +715,8 @@ function handleCameraEnd(e) {
     }
 }
 
-/* ================= СТРЕЛЬБА ================= */
 function shoot() {
-    if (!gameStarted) return;
+    if (!socket || socket.readyState !== WebSocket.OPEN) return;
     
     const now = Date.now();
     if (now - lastShootTime < CONFIG.SHOOT_COOLDOWN) return;
@@ -745,14 +724,27 @@ function shoot() {
     lastShootTime = now;
     
     // Анимация отдачи
-    camera.children[0].position.z = -0.85;
-    setTimeout(() => {
-        if (camera.children[0]) {
-            camera.children[0].position.z = -1;
-        }
-    }, 100);
+    if (camera.children[0]) {
+        camera.children[0].position.z = -0.85;
+        setTimeout(() => {
+            if (camera.children[0]) {
+                camera.children[0].position.z = -1;
+            }
+        }, 100);
+    }
+    
+    // Отправляем на сервер
+    socket.send(JSON.stringify({
+        type: 'shoot',
+        position: player.position,
+        rotation: player.rotation
+    }));
     
     // Проверка попадания
+    checkHit();
+}
+
+function checkHit() {
     const direction = new THREE.Vector3(0, 0, -1);
     direction.applyEuler(new THREE.Euler(player.rotation.pitch, player.rotation.yaw, 0, 'YXZ'));
     
@@ -762,8 +754,7 @@ function shoot() {
     let hitPlayer = null;
     let minDistance = Infinity;
     
-    // Проверяем попадание в других игроков
-    for (const [id, otherPlayer] of otherPlayers) {
+    otherPlayers.forEach((otherPlayer, id) => {
         const raycaster = new THREE.Raycaster(rayOrigin, rayDirection);
         const box = new THREE.Box3().setFromObject(otherPlayer.mesh);
         const intersect = raycaster.intersectBox(box);
@@ -775,9 +766,8 @@ function shoot() {
                 hitPlayer = { id, otherPlayer };
             }
         }
-    }
+    });
     
-    // Если попали, отправляем на сервер
     if (hitPlayer && socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({
             type: 'hit',
@@ -785,176 +775,26 @@ function shoot() {
             damage: 34
         }));
         
-        // Визуальный эффект попадания
         showNotification('💥 Попадание!');
     }
-    
-    // Отправляем событие выстрела
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({
-            type: 'shoot',
-            from: player.id
-        }));
-    }
 }
 
-/* ================= КОЛЛИЗИИ ================= */
-function checkCollision(position) {
-    const playerBox = new THREE.Box3(
-        new THREE.Vector3(position.x - CONFIG.PLAYER_RADIUS, 0.5, position.z - CONFIG.PLAYER_RADIUS),
-        new THREE.Vector3(position.x + CONFIG.PLAYER_RADIUS, 2.5, position.z + CONFIG.PLAYER_RADIUS)
-    );
-    
-    for (const wall of walls) {
-        if (playerBox.intersectsBox(wall)) {
-            return true;
-        }
-    }
-    
-    return false;
-}
-
-/* ================= СЕТЕВОЕ ВЗАИМОДЕЙСТВИЕ ================= */
-function connectToServer(serverUrl = null) {
-    const url = serverUrl || document.getElementById('serverInput').value;
-    
-    if (!url) {
-        showNotification('⚠️ Введите адрес сервера');
-        return;
-    }
-    
-    try {
-        socket = new WebSocket(url);
-        
-        socket.onopen = () => {
-            showNotification('✅ Подключено к серверу');
-            
-            // Инициализируем игру
-            if (!gameStarted) {
-                initGame();
-                gameStarted = true;
-            }
-            
-            // Показываем игровой интерфейс
-            document.getElementById('mainMenu').classList.add('hidden');
-            document.getElementById('connectScreen').classList.add('hidden');
-            document.getElementById('gameUI').classList.remove('hidden');
-            document.getElementById('menu').style.display = 'none';
-            
-            // Отправляем информацию о себе
-            socket.send(JSON.stringify({
-                type: 'join',
-                id: player.id,
-                position: player.position,
-                rotation: player.rotation,
-                health: player.health
-            }));
-        };
-        
-        socket.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-                handleNetworkMessage(data);
-            } catch (e) {
-                console.error('Ошибка парсинга сообщения:', e);
-            }
-        };
-        
-        socket.onerror = (error) => {
-            console.error('WebSocket ошибка:', error);
-            showNotification('❌ Ошибка подключения');
-        };
-        
-        socket.onclose = () => {
-            console.log('Отключено от сервера');
-            showNotification('🔌 Отключено от сервера');
-            
-            // Удаляем других игроков
-            for (const [id, otherPlayer] of otherPlayers) {
-                scene.remove(otherPlayer.mesh);
-            }
-            otherPlayers.clear();
-            updatePlayersCount();
-        };
-        
-    } catch (error) {
-        console.error('Ошибка подключения:', error);
-        showNotification('❌ Неверный адрес сервера');
-    }
-}
-
-function handleNetworkMessage(data) {
-    switch (data.type) {
-        case 'player_join':
-            if (data.id !== player.id) {
-                addOtherPlayer(data.id, data.position, data.rotation, data.health);
-            }
-            break;
-            
-        case 'player_leave':
-            removeOtherPlayer(data.id);
-            break;
-            
-        case 'player_update':
-            if (data.id !== player.id) {
-                updateOtherPlayer(data.id, data.position, data.rotation, data.health);
-            }
-            break;
-            
-        case 'player_hit':
-            if (data.target === player.id) {
-                // Получили урон
-                player.health = Math.max(0, player.health - data.damage);
-                updateHealth();
-                
-                if (player.health <= 0) {
-                    deaths++;
-                    showNotification('💀 Вы погибли! Респавн...');
-                    setTimeout(() => {
-                        player.health = CONFIG.MAX_HEALTH;
-                        player.position.set(0, CONFIG.PLAYER_HEIGHT, 5);
-                        updateHealth();
-                    }, CONFIG.RESPAWN_TIME);
-                }
-            } else if (otherPlayers.has(data.target)) {
-                // Кто-то другой получил урон
-                const otherPlayer = otherPlayers.get(data.target);
-                otherPlayer.health = data.health;
-            }
-            break;
-            
-        case 'player_kill':
-            if (data.killer === player.id) {
-                kills++;
-                updateKills();
-                showNotification('🎉 Вы убили игрока!');
-            }
-            break;
-            
-        case 'players_list':
-            // Синхронизируем всех игроков
-            for (const playerData of data.players) {
-                if (playerData.id !== player.id) {
-                    addOtherPlayer(playerData.id, playerData.position, playerData.rotation, playerData.health);
-                }
-            }
-            break;
-    }
-}
-
-function addOtherPlayer(id, position, rotation, health) {
+/* ================= ИГРОВАЯ ЛОГИКА ================= */
+function addOtherPlayer(id, position, rotation, health = 100, color = 0x0000ff, name = 'Player') {
     if (otherPlayers.has(id) || id === player.id) return;
     
-    const mesh = createPlayerMesh(0x0000ff); // Синий для других игроков
-    mesh.position.copy(position);
+    const mesh = createPlayerMesh(color);
+    mesh.position.set(position.x, position.y, position.z);
     mesh.rotation.y = rotation.yaw;
     scene.add(mesh);
     
     otherPlayers.set(id, {
         mesh,
-        position: position.clone(),
+        position: new THREE.Vector3(position.x, position.y, position.z),
         rotation: rotation,
-        health: health
+        health: health,
+        name: name,
+        color: color
     });
     
     updatePlayersCount();
@@ -971,10 +811,44 @@ function removeOtherPlayer(id) {
 function updateOtherPlayer(id, position, rotation, health) {
     if (otherPlayers.has(id)) {
         const otherPlayer = otherPlayers.get(id);
-        otherPlayer.position.copy(position);
+        otherPlayer.position.set(position.x, position.y, position.z);
         otherPlayer.rotation = rotation;
         otherPlayer.health = health;
     }
+}
+
+function createPlayerMesh(color) {
+    const group = new THREE.Group();
+
+    const bodyGeometry = new THREE.CylinderGeometry(0.3, 0.3, 1.2, 8);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: color });
+    const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+    body.position.y = 0.6;
+    body.castShadow = true;
+
+    const headGeometry = new THREE.SphereGeometry(0.25, 8, 8);
+    const headMaterial = new THREE.MeshStandardMaterial({ color: 0xf0f0f0 });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.y = 1.5;
+    head.castShadow = true;
+
+    group.add(body, head);
+    return group;
+}
+
+function checkCollision(position) {
+    const playerBox = new THREE.Box3(
+        new THREE.Vector3(position.x - CONFIG.PLAYER_RADIUS, 0.5, position.z - CONFIG.PLAYER_RADIUS),
+        new THREE.Vector3(position.x + CONFIG.PLAYER_RADIUS, 2.5, position.z + CONFIG.PLAYER_RADIUS)
+    );
+    
+    for (const wall of walls) {
+        if (playerBox.intersectsBox(wall)) {
+            return true;
+        }
+    }
+    
+    return false;
 }
 
 /* ================= ИНТЕРФЕЙС ================= */
@@ -1002,26 +876,17 @@ function showNotification(text) {
     }, 3000);
 }
 
-/* ================= МЕНЮ ================= */
-function showMenu() {
-    document.getElementById('menu').style.display = 'flex';
-}
-
-function showScreen(screenId) {
-    // Скрываем все экраны
-    document.querySelectorAll('#menu > .menu-content > div').forEach(el => {
-        el.classList.add('hidden');
-    });
-    
-    // Показываем нужный экран
-    document.getElementById(screenId).classList.remove('hidden');
-}
-
 /* ================= ГЛАВНЫЙ ЦИКЛ ================= */
+let lastFrameTime = performance.now();
+
 function gameLoop() {
     requestAnimationFrame(gameLoop);
     
-    if (!gameStarted || !player) return;
+    if (!player) return;
+    
+    const currentTime = performance.now();
+    const deltaTime = Math.min((currentTime - lastFrameTime) / 1000, 0.1);
+    lastFrameTime = currentTime;
     
     // Движение игрока
     const forward = new THREE.Vector3(0, 0, -1);
@@ -1043,36 +908,30 @@ function gameLoop() {
         }
     }
     
-    // Обновление позиции камеры и игрока
+    // Обновление камеры
     camera.position.copy(player.position);
     camera.rotation.order = 'YXZ';
     camera.rotation.y = player.rotation.yaw;
     camera.rotation.x = player.rotation.pitch;
     
-    // Обновление меша игрока
-    player.mesh.position.copy(player.position);
-    player.mesh.position.y = CONFIG.PLAYER_HEIGHT - 1.2;
-    player.mesh.rotation.y = player.rotation.yaw;
-    
-    // Интерполяция позиций других игроков
-    for (const [id, otherPlayer] of otherPlayers) {
+    // Интерполяция других игроков
+    otherPlayers.forEach(otherPlayer => {
         otherPlayer.mesh.position.lerp(otherPlayer.position, 0.2);
         otherPlayer.mesh.position.y = CONFIG.PLAYER_HEIGHT - 1.2;
         otherPlayer.mesh.rotation.y = otherPlayer.rotation.yaw;
-    }
+    });
     
-    // Анимация оружия при движении
+    // Анимация оружия
     if (player.isMoving && camera.children[0]) {
-        const time = Date.now() * 0.01;
+        const time = currentTime * 0.01;
         camera.children[0].position.x = 0.4 + Math.sin(time) * 0.01;
         camera.children[0].position.y = -0.3 + Math.cos(time * 2) * 0.005;
     }
     
-    // Отправка данных на сервер
+    // Отправка обновления на сервер
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({
             type: 'update',
-            id: player.id,
             position: player.position,
             rotation: player.rotation,
             health: player.health
@@ -1085,7 +944,6 @@ function gameLoop() {
     }
 }
 
-/* ================= ОБРАБОТКА ИЗМЕНЕНИЯ РАЗМЕРА ================= */
 function onWindowResize() {
     if (!camera || !renderer) return;
     
@@ -1094,22 +952,17 @@ function onWindowResize() {
     renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
-/* ================= ИНИЦИАЛИЗАЦИЯ ПРИ ЗАГРУЗКЕ ================= */
+/* ================= ИНИЦИАЛИЗАЦИЯ ================= */
 window.addEventListener('DOMContentLoaded', () => {
-    // Показываем главное меню
-    showScreen('mainMenu');
-    
-    // Предотвращаем стандартное поведение жестов
+    // Предотвращаем стандартное поведение
     document.addEventListener('gesturestart', e => e.preventDefault());
     document.addEventListener('touchmove', e => {
         if (e.scale !== 1) e.preventDefault();
     }, { passive: false });
     
-    // Показываем уведомление о готовности
-    setTimeout(() => {
-        showNotification('👆 Нажмите "Играть онлайн" для начала');
-    }, 1000);
+    // Показываем меню
+    showNotification('👆 Нажмите "НАЧАТЬ ИГРУ"');
 });
 </script>
 </body>
-          </html>
+</html>
