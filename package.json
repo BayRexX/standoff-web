@@ -1,36 +1,11 @@
 {
-  "name": "fps-multiplayer-client",
+  "name": "fps-game-server",
   "version": "1.0.0",
-  "description": "FPS Multiplayer Shooter Game Client",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "start": "echo 'Starting static site...' && exit 0",
-    "build": "echo 'No build required for static site'",
-    "test": "echo 'No tests specified' && exit 0",
-    "deploy": "echo 'Ready for deployment'"
+    "start": "node server.js"  ← ИЗМЕНИТЕ НА ЭТО!
   },
-  "keywords": [
-    "game",
-    "fps",
-    "multiplayer",
-    "shooter",
-    "websocket",
-    "threejs"
-  ],
-  "author": "BayRex",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/your-username/fps-game.git"
-  },
-  "bugs": {
-    "url": "https://github.com/your-username/fps-game/issues"
-  },
-  "homepage": "https://github.com/your-username/fps-game#readme",
-  "engines": {
-    "node": ">=16.0.0",
-    "npm": ">=8.0.0"
-  },
-  "dependencies": {},
-  "devDependencies": {}
+  "dependencies": {
+    "ws": "^8.13.0"
+  }
 }
