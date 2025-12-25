@@ -1,18 +1,36 @@
 {
-  "name": "standoff-web",
+  "name": "fps-multiplayer-client",
   "version": "1.0.0",
-  "description": "WebSocket сервер для мобильного FPS шутера",
-  "main": "server.js",
+  "description": "FPS Multiplayer Shooter Game Client",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "echo 'Starting static site...' && exit 0",
+    "build": "echo 'No build required for static site'",
+    "test": "echo 'No tests specified' && exit 0",
+    "deploy": "echo 'Ready for deployment'"
   },
-  "dependencies": {
-    "ws": "^8.13.0"
-  },
-  "engines": {
-    "node": ">=16.0.0"
-  },
-  "keywords": ["game", "websocket", "multiplayer", "fps"],
+  "keywords": [
+    "game",
+    "fps",
+    "multiplayer",
+    "shooter",
+    "websocket",
+    "threejs"
+  ],
   "author": "BayRex",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-username/fps-game.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/fps-game/issues"
+  },
+  "homepage": "https://github.com/your-username/fps-game#readme",
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {},
+  "devDependencies": {}
 }
