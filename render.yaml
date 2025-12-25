@@ -1,11 +1,82 @@
 services:
   - type: web
-    name: fps-game-server
-    env: node
+    name: fps-game-client
+    env: static
     plan: free
-    buildCommand: npm install
-    startCommand: npm start
+    region: oregon  # или ближайший к вам: frankfurt, ohio, oregon, singapore
+    branch: main
+    buildCommand: |
+      echo "🛠️  Building FPS Game Client..."
+      echo "📁 Current directory: $(pwd)"
+      echo "📁 Contents:"
+      ls -la
+      echo "📁 Public folder contents:"
+      ls -la public/ || echo "No public folder yet"
+      echo "✅ Build complete - static site ready"
+    staticPublishPath: ./public
     envVars:
-      - key: PORT
-        value: 10000
-    healthCheckPath: /health
+      - key: NODE_ENV
+        value: production
+      - key: RENDER
+        value: true
+    headers:
+      # Основные заголовки для HTML файлов
+      - path: /*
+        name: Content-Type
+        value: "text/html; charset=UTF-8"
+      - path: /*
+        name: X-Content-Type-Options
+        value: "nosniff"
+      
+      # Кэширование для статических ресурсов
+      - path: /*.js
+        name: Content-Type
+        value: "application/javascript"
+      - path: /*.css
+        name: Content-Type
+        value: "text/css"
+      - path: /*.png
+        name: Content-Type
+        value: "image/png"
+      - path: /*.jpg
+        name: Content-Type
+        value: "image/jpeg"
+      - path: /*.gif
+        name: Content-Type
+        value: "image/gif"
+      
+      # Безопасность
+      - path: /*
+        name: X-Frame-Options
+        value: "DENY"
+      - path: /*
+        name: X-XSS-Protection
+        value: "1; mode=block"
+      - path: /*
+        name: Referrer-Policy
+        value: "strict-origin-when-cross-origin"
+      
+      # CORS для WebSocket
+      - path: /*
+        name: Access-Control-Allow-Origin
+        value: "*"
+      - path: /*
+        name: Access-Control-Allow-Methods
+        value: "GET, POST, OPTIONS"
+      - path: /*
+        name: Access-Control-Allow-Headers
+        value: "Content-Type, Authorization"
+    
+    # Автоматическое развертывание
+    autoDeploy: true
+    
+    # Предварительные команды
+    preDeployCommand: |
+      echo "🚀 Starting pre-deploy..."
+      echo "📁 Ensuring public directory exists..."
+      mkdir -p public
+      echo "✅ Pre-deploy complete"
+    
+    # Health check
+    healthCheckPath: /
+    initialDeployTimeout: 600  # 10 минут для первого деплоя
