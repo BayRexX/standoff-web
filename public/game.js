@@ -1,3 +1,5 @@
+[file name]: game.js
+[file content begin]
 const Game = {
     // Основные объекты Three.js
     scene: null,
@@ -9,6 +11,11 @@ const Game = {
     lastFrameTime: 0,
     lastShootTime: 0,
     lastNetworkUpdate: 0,
+    
+    // FPS счетчик
+    fps: 0,
+    fpsCounter: 0,
+    lastFpsUpdate: 0,
     
     // Игровые объекты
     player: {
@@ -47,7 +54,18 @@ const Game = {
             // Показываем игровые элементы
             document.getElementById('ui').style.display = 'flex';
             document.getElementById('crosshair').style.display = 'block';
-            document.getElementById('chatBtn').style.display = 'block';
+            document.getElementById('fpsCounter').style.display = 'block';
+            
+            // Показываем кнопки в зависимости от платформы
+            if (Controls.isPC) {
+                document.getElementById('chatBtn').style.display = 'block';
+                document.getElementById('pcControls').style.display = 'block';
+            } else {
+                document.getElementById('mobileChatBtn').style.display = 'flex';
+                document.getElementById('cameraSwitchBtn').style.display = 'flex';
+                document.getElementById('mobileControls').style.display = 'block';
+                document.getElementById('mobileAimIndicator').style.display = 'block';
+            }
             
             // Инициализация
             this.init();
@@ -60,6 +78,9 @@ const Game = {
             this.isRunning = true;
             this.lastFrameTime = performance.now();
             this.lastNetworkUpdate = Date.now();
+            this.lastFpsUpdate = Date.now();
+            this.fps = 0;
+            this.fpsCounter = 0;
             
             // Запуск игрового цикла
             this.gameLoop();
@@ -570,6 +591,31 @@ const Game = {
     
     // === ИГРОВОЙ ЦИКЛ ===
     
+    // Обновление счетчика FPS
+    updateFPS() {
+        this.fpsCounter++;
+        const now = Date.now();
+        
+        if (now - this.lastFpsUpdate >= 1000) {
+            this.fps = this.fpsCounter;
+            this.fpsCounter = 0;
+            this.lastFpsUpdate = now;
+            
+            // Обновляем отображение FPS
+            const fpsElement = document.getElementById('fpsCounter');
+            fpsElement.textContent = `FPS: ${this.fps}`;
+            
+            // Изменяем цвет в зависимости от FPS
+            if (this.fps >= 50) {
+                fpsElement.style.color = '#00ff00';
+            } else if (this.fps >= 30) {
+                fpsElement.style.color = '#ffff00';
+            } else {
+                fpsElement.style.color = '#ff0000';
+            }
+        }
+    },
+    
     // Главный игровой цикл
     gameLoop() {
         if (!this.isRunning) return;
@@ -577,6 +623,9 @@ const Game = {
         const currentTime = performance.now();
         const deltaTime = Math.min((currentTime - this.lastFrameTime) / 1000, 0.1);
         this.lastFrameTime = currentTime;
+        
+        // Обновление FPS
+        this.updateFPS();
         
         // Обновление физики
         this.updatePhysics();
@@ -699,6 +748,8 @@ const Game = {
         
         // Сброс статистики
         this.stats = { kills: 0, deaths: 0, shots: 0, hits: 0 };
+        this.fps = 0;
+        this.fpsCounter = 0;
         this.lastShootTime = 0;
         this.lastNetworkUpdate = 0;
         
@@ -708,13 +759,17 @@ const Game = {
         // Отключение от сервера
         Network.disconnect();
         
-        // Показываем меню
+        // Скрываем все игровые элементы
         document.getElementById('menu').classList.remove('hidden');
         document.getElementById('ui').style.display = 'none';
         document.getElementById('crosshair').style.display = 'none';
+        document.getElementById('fpsCounter').style.display = 'none';
         document.getElementById('chatBtn').style.display = 'none';
+        document.getElementById('mobileChatBtn').style.display = 'none';
+        document.getElementById('cameraSwitchBtn').style.display = 'none';
         document.getElementById('mobileControls').style.display = 'none';
         document.getElementById('pcControls').style.display = 'none';
+        document.getElementById('mobileAimIndicator').style.display = 'none';
         
         // Очистка чата
         Chat.clear();
@@ -756,3 +811,4 @@ const Notification = {
         this.show(`⚠️ ${text}`);
     }
 };
+[file content end]
