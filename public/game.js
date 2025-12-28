@@ -8,6 +8,7 @@ const Game = {
     isRunning: false,
     lastFrameTime: 0,
     lastShootTime: 0,
+    lastNetworkUpdate: 0,
     
     // Игровые объекты
     player: {
@@ -30,8 +31,12 @@ const Game = {
     // Статистика
     stats: {
         kills: 0,
-        deaths: 0
+        deaths: 0,
+        shots: 0,
+        hits: 0
     },
+    
+    // === ОСНОВНЫЕ МЕТОДЫ ===
     
     // Запуск игры
     async start() {
@@ -54,11 +59,12 @@ const Game = {
             
             this.isRunning = true;
             this.lastFrameTime = performance.now();
+            this.lastNetworkUpdate = Date.now();
             
             // Запуск игрового цикла
             this.gameLoop();
             
-            Notification.show('🎮 Игра началась!');
+            Notification.show('🎮 Игра началась! Добро пожаловать!');
             
         } catch (error) {
             console.error('Ошибка запуска игры:', error);
@@ -106,6 +112,8 @@ const Game = {
         // Инициализируем игрока
         this.player.position.set(0, CONFIG.PLAYER_HEIGHT, 5);
         this.player.health = CONFIG.MAX_HEALTH;
+        this.player.velocityY = 0;
+        this.player.isGrounded = true;
         
         // Обработка изменения размера
         window.addEventListener('resize', () => this.onResize());
@@ -240,6 +248,50 @@ const Game = {
         this.camera.add(gunGroup);
     },
     
+    // === ФИЗИКА И ДВИЖЕНИЕ ===
+    
+    // Обновление физики
+    updatePhysics() {
+        // Гравитация
+        this.player.velocityY -= CONFIG.GRAVITY;
+        this.player.position.y += this.player.velocityY;
+        
+        // Проверка земли
+        if (this.player.position.y < CONFIG.PLAYER_HEIGHT) {
+            this.player.position.y = CONFIG.PLAYER_HEIGHT;
+            this.player.velocityY = 0;
+            this.player.isGrounded = true;
+        } else {
+            this.player.isGrounded = false;
+        }
+    },
+    
+    // Проверка коллизий
+    checkCollision(position) {
+        const playerBox = new THREE.Box3(
+            new THREE.Vector3(
+                position.x - CONFIG.PLAYER_RADIUS,
+                CONFIG.PLAYER_HEIGHT - 1,
+                position.z - CONFIG.PLAYER_RADIUS
+            ),
+            new THREE.Vector3(
+                position.x + CONFIG.PLAYER_RADIUS,
+                CONFIG.PLAYER_HEIGHT + 1,
+                position.z + CONFIG.PLAYER_RADIUS
+            )
+        );
+        
+        for (const wall of this.walls) {
+            if (playerBox.intersectsBox(wall)) {
+                return true;
+            }
+        }
+        
+        return false;
+    },
+    
+    // === СТРЕЛЬБА И ПУЛИ ===
+    
     // Эффект отдачи оружия
     weaponRecoil() {
         if (this.camera.children[0]) {
@@ -354,6 +406,7 @@ const Game = {
         
         if (closestHit && Network.isConnected) {
             Network.sendHit(closestHit.id);
+            this.stats.shots++;
             
             // Визуальная обратная связь
             if (closestHit.otherPlayer.mesh && closestHit.otherPlayer.mesh.children[0]) {
@@ -368,45 +421,7 @@ const Game = {
         }
     },
     
-    // Обновление физики
-    updatePhysics() {
-        // Гравитация
-        this.player.velocityY -= CONFIG.GRAVITY;
-        this.player.position.y += this.player.velocityY;
-        
-        // Проверка земли
-        if (this.player.position.y < CONFIG.PLAYER_HEIGHT) {
-            this.player.position.y = CONFIG.PLAYER_HEIGHT;
-            this.player.velocityY = 0;
-            this.player.isGrounded = true;
-        } else {
-            this.player.isGrounded = false;
-        }
-    },
-    
-    // Проверка коллизий
-    checkCollision(position) {
-        const playerBox = new THREE.Box3(
-            new THREE.Vector3(
-                position.x - CONFIG.PLAYER_RADIUS,
-                CONFIG.PLAYER_HEIGHT - 1,
-                position.z - CONFIG.PLAYER_RADIUS
-            ),
-            new THREE.Vector3(
-                position.x + CONFIG.PLAYER_RADIUS,
-                CONFIG.PLAYER_HEIGHT + 1,
-                position.z + CONFIG.PLAYER_RADIUS
-            )
-        );
-        
-        for (const wall of this.walls) {
-            if (playerBox.intersectsBox(wall)) {
-                return true;
-            }
-        }
-        
-        return false;
-    },
+    // === ИГРОКИ ===
     
     // Добавление другого игрока
     addOtherPlayer(id, position, rotation, health = 100, color = 0x0000ff, name = 'Player') {
@@ -424,10 +439,12 @@ const Game = {
             health: health,
             name: name,
             color: color,
-            isAlive: health > 0
+            isAlive: health > 0,
+            lastUpdate: Date.now()
         });
         
         this.updatePlayersCount();
+        console.log(`Добавлен игрок: ${name} (${id})`);
     },
     
     // Создание меша игрока
@@ -465,6 +482,7 @@ const Game = {
             this.scene.remove(this.otherPlayers.get(id).mesh);
             this.otherPlayers.delete(id);
             this.updatePlayersCount();
+            console.log(`Удален игрок: ${id}`);
         }
     },
     
@@ -476,6 +494,7 @@ const Game = {
             otherPlayer.rotation = rotation || otherPlayer.rotation;
             otherPlayer.health = health;
             otherPlayer.isAlive = health > 0;
+            otherPlayer.lastUpdate = Date.now();
         }
     },
     
@@ -490,23 +509,54 @@ const Game = {
     
     // Интерполяция других игроков
     interpolatePlayers() {
+        const now = Date.now();
+        
         this.otherPlayers.forEach(otherPlayer => {
             if (otherPlayer.mesh) {
+                // Удаляем игроков, которые не обновлялись 10 секунд
+                if (now - otherPlayer.lastUpdate > 10000) {
+                    this.scene.remove(otherPlayer.mesh);
+                    this.otherPlayers.delete(otherPlayer.id);
+                    return;
+                }
+                
+                // Плавная интерполяция
                 otherPlayer.mesh.position.lerp(otherPlayer.position, 0.2);
                 otherPlayer.mesh.position.y = CONFIG.PLAYER_HEIGHT - 1.2;
-                otherPlayer.mesh.rotation.y = otherPlayer.rotation.yaw;
+                
+                // Плавный поворот
+                const targetRotation = otherPlayer.rotation.yaw || 0;
+                const currentRotation = otherPlayer.mesh.rotation.y;
+                const rotationDiff = targetRotation - currentRotation;
+                
+                // Нормализуем разницу
+                if (rotationDiff > Math.PI) {
+                    otherPlayer.mesh.rotation.y += rotationDiff - Math.PI * 2;
+                } else if (rotationDiff < -Math.PI) {
+                    otherPlayer.mesh.rotation.y += rotationDiff + Math.PI * 2;
+                } else {
+                    otherPlayer.mesh.rotation.y += rotationDiff * 0.1;
+                }
             }
         });
     },
     
     // Анимация оружия при движении
     animateWeapon() {
-        if (this.camera.children[0] && this.player.isMoving) {
-            const time = performance.now() * 0.01;
+        if (this.camera.children[0]) {
             const gun = this.camera.children[0];
-            gun.position.x = 0.4 + Math.sin(time) * 0.01;
-            gun.position.y = -0.3 + Math.cos(time * 2) * 0.005;
-            gun.rotation.z = Math.sin(time * 0.5) * 0.02;
+            const time = performance.now() * 0.01;
+            
+            // Дыхание (постоянное легкое движение)
+            gun.position.x = 0.4 + Math.sin(time * 0.5) * 0.005;
+            gun.position.y = -0.3 + Math.cos(time * 1) * 0.003;
+            
+            // Дополнительное движение при ходьбе
+            if (this.player.isMoving) {
+                gun.position.x += Math.sin(time * 8) * 0.01;
+                gun.position.y += Math.cos(time * 16) * 0.005;
+                gun.rotation.z = Math.sin(time * 4) * 0.02;
+            }
         }
     },
     
@@ -518,7 +568,9 @@ const Game = {
         this.camera.rotation.x = this.player.rotation.pitch;
     },
     
-    // Игровой цикл
+    // === ИГРОВОЙ ЦИКЛ ===
+    
+    // Главный игровой цикл
     gameLoop() {
         if (!this.isRunning) return;
         
@@ -544,8 +596,8 @@ const Game = {
         // Анимация оружия
         this.animateWeapon();
         
-        // Отправка обновления на сервер
-        if (Network.isConnected) {
+        // Отправка обновления на сервер (каждые 100мс)
+        if (Network.isConnected && Date.now() - this.lastNetworkUpdate > 100) {
             Network.sendUpdate(
                 {
                     x: this.player.position.x,
@@ -555,6 +607,7 @@ const Game = {
                 this.player.rotation,
                 this.player.health
             );
+            this.lastNetworkUpdate = Date.now();
         }
         
         // Рендеринг
@@ -580,8 +633,18 @@ const Game = {
     // Обновление здоровья
     updateHealth() {
         const healthPercent = (this.player.health / CONFIG.MAX_HEALTH) * 100;
-        document.getElementById('healthText').textContent = this.player.health;
+        document.getElementById('healthText').textContent = Math.round(this.player.health);
         document.getElementById('healthFill').style.width = healthPercent + '%';
+        
+        // Изменение цвета в зависимости от здоровья
+        const healthFill = document.getElementById('healthFill');
+        if (healthPercent > 50) {
+            healthFill.style.background = 'linear-gradient(to right, #00ff00, #ffff00)';
+        } else if (healthPercent > 25) {
+            healthFill.style.background = 'linear-gradient(to right, #ffff00, #ff9900)';
+        } else {
+            healthFill.style.background = 'linear-gradient(to right, #ff9900, #ff0000)';
+        }
     },
     
     // Обновление счетчика игроков
@@ -614,6 +677,11 @@ const Game = {
                 this.scene.remove(bullet);
             });
             this.bullets = [];
+            
+            // Удаляем оружие с камеры
+            if (this.camera && this.camera.children[0]) {
+                this.camera.remove(this.camera.children[0]);
+            }
         }
         
         // Сброс игрока
@@ -630,10 +698,15 @@ const Game = {
         };
         
         // Сброс статистики
-        this.stats = { kills: 0, deaths: 0 };
+        this.stats = { kills: 0, deaths: 0, shots: 0, hits: 0 };
+        this.lastShootTime = 0;
+        this.lastNetworkUpdate = 0;
         
         // Сброс управления
         Controls.reset();
+        
+        // Отключение от сервера
+        Network.disconnect();
         
         // Показываем меню
         document.getElementById('menu').classList.remove('hidden');
@@ -645,5 +718,41 @@ const Game = {
         
         // Очистка чата
         Chat.clear();
+        
+        console.log('Игра сброшена');
+    }
+};
+
+// Глобальная функция для запуска игры
+window.startGame = function() {
+    Game.start();
+};
+
+// Уведомления
+const Notification = {
+    // Показать уведомление
+    show(text, duration = 3000) {
+        const notification = document.getElementById('notification');
+        notification.textContent = text;
+        notification.style.display = 'block';
+        
+        setTimeout(() => {
+            notification.style.display = 'none';
+        }, duration);
+    },
+    
+    // Показать ошибку
+    error(text) {
+        this.show(`❌ ${text}`);
+    },
+    
+    // Показать успех
+    success(text) {
+        this.show(`✅ ${text}`);
+    },
+    
+    // Показать предупреждение
+    warning(text) {
+        this.show(`⚠️ ${text}`);
     }
 };
