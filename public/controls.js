@@ -1,3 +1,5 @@
+[file name]: controls.js
+[file content begin]
 const Controls = {
     // Параметры управления
     isPC: false,
@@ -17,7 +19,9 @@ const Controls = {
         isRotating: false,
         lastTouchX: 0,
         lastTouchY: 0,
-        touchId: null
+        touchId: null,
+        isJumping: false,
+        isShooting: false
     },
     
     // Инициализация управления
@@ -125,17 +129,20 @@ const Controls = {
     
     // === УПРАВЛЕНИЕ ДЛЯ МОБИЛЬНЫХ ===
     setupMobileControls() {
-        const joystick = document.getElementById('moveJoystick');
+        const joystick = document.getElementById('moveJoystickContainer');
         
         // Джойстик движения
         joystick.addEventListener('touchstart', (e) => {
             e.preventDefault();
-        });
+            this.touch.isMoving = true;
+        }, { passive: false });
         
         joystick.addEventListener('touchmove', (e) => {
+            if (!this.touch.isMoving || !Game.isRunning) return;
+            
             e.preventDefault();
             const touch = e.touches[0];
-            const rect = e.currentTarget.getBoundingClientRect();
+            const rect = joystick.getBoundingClientRect();
             
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
@@ -154,33 +161,50 @@ const Controls = {
             const inner = document.getElementById('moveJoystickInner');
             inner.style.transform = `translate(${this.touch.moveX * 30}px, ${this.touch.moveY * 30}px)`;
             
-            this.touch.isMoving = length > 0.1;
-        });
+        }, { passive: false });
         
-        joystick.addEventListener('touchend', () => {
+        joystick.addEventListener('touchend', (e) => {
+            e.preventDefault();
             this.touch.moveX = 0;
             this.touch.moveY = 0;
             this.touch.isMoving = false;
             
             const inner = document.getElementById('moveJoystickInner');
             inner.style.transform = 'translate(0, 0)';
-        });
+        }, { passive: false });
+        
+        joystick.addEventListener('touchcancel', (e) => {
+            e.preventDefault();
+            this.touch.moveX = 0;
+            this.touch.moveY = 0;
+            this.touch.isMoving = false;
+            
+            const inner = document.getElementById('moveJoystickInner');
+            inner.style.transform = 'translate(0, 0)';
+        }, { passive: false });
         
         // Поворот камеры (правая часть экрана)
         document.addEventListener('touchstart', (e) => {
+            if (!Game.isRunning || Chat.isVisible) return;
+            
             for (let i = 0; i < e.touches.length; i++) {
                 const touch = e.touches[i];
-                const target = document.elementFromPoint(touch.clientX, touch.clientY);
                 
-                // Пропускаем элементы управления
-                if (target.closest('#moveJoystick') || target.closest('#shootBtn') || 
-                    target.closest('#chatBtn') || target.closest('#chatWindow') ||
-                    target.closest('#jumpBtn')) {
+                // Проверяем, что тач не на элементах управления
+                const target = document.elementFromPoint(touch.clientX, touch.clientY);
+                if (target && (
+                    target.closest('#moveJoystickContainer') || 
+                    target.closest('#shootBtn') || 
+                    target.closest('#jumpBtn') ||
+                    target.closest('#mobileChatBtn') ||
+                    target.closest('#cameraSwitchBtn') ||
+                    target.closest('#chatWindow')
+                )) {
                     continue;
                 }
                 
-                // Используем правую половину экрана для поворота
-                if (touch.clientX > window.innerWidth / 2 && !this.touch.isRotating) {
+                // Используем правую часть экрана для поворота
+                if (touch.clientX > window.innerWidth / 3 && !this.touch.isRotating) {
                     this.touch.isRotating = true;
                     this.touch.touchId = touch.identifier;
                     this.touch.lastTouchX = touch.clientX;
@@ -188,10 +212,10 @@ const Controls = {
                     break;
                 }
             }
-        });
+        }, { passive: false });
         
         document.addEventListener('touchmove', (e) => {
-            if (!this.touch.isRotating || !Game.isRunning) return;
+            if (!Game.isRunning || Chat.isVisible || !this.touch.isRotating) return;
             
             for (let i = 0; i < e.touches.length; i++) {
                 const touch = e.touches[i];
@@ -199,8 +223,8 @@ const Controls = {
                     const deltaX = touch.clientX - this.touch.lastTouchX;
                     const deltaY = touch.clientY - this.touch.lastTouchY;
                     
-                    Game.player.rotation.yaw -= deltaX * CONFIG.ROTATION_SPEED;
-                    Game.player.rotation.pitch -= deltaY * CONFIG.ROTATION_SPEED * 0.5;
+                    Game.player.rotation.yaw -= deltaX * CONFIG.ROTATION_SPEED * 2;
+                    Game.player.rotation.pitch -= deltaY * CONFIG.ROTATION_SPEED;
                     Game.player.rotation.pitch = Math.max(-Math.PI/2.5, Math.min(Math.PI/2.5, Game.player.rotation.pitch));
                     
                     this.touch.lastTouchX = touch.clientX;
@@ -209,7 +233,7 @@ const Controls = {
                     break;
                 }
             }
-        });
+        }, { passive: false });
         
         document.addEventListener('touchend', (e) => {
             for (let i = 0; i < e.changedTouches.length; i++) {
@@ -220,9 +244,43 @@ const Controls = {
                 }
             }
         });
+        
+        // Обработка кнопок
+        document.getElementById('jumpBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.startJump();
+        }, { passive: false });
+        
+        document.getElementById('jumpBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.stopJump();
+        }, { passive: false });
+        
+        document.getElementById('shootBtn').addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            this.startShooting();
+        }, { passive: false });
+        
+        document.getElementById('shootBtn').addEventListener('touchend', (e) => {
+            e.preventDefault();
+            this.stopShooting();
+        }, { passive: false });
     },
     
     // === ОБЩИЕ ФУНКЦИИ ===
+    
+    // Начать прыжок
+    startJump() {
+        this.touch.isJumping = true;
+        if (Game.player.isGrounded) {
+            this.jump();
+        }
+    },
+    
+    // Остановить прыжок
+    stopJump() {
+        this.touch.isJumping = false;
+    },
     
     // Прыжок
     jump() {
@@ -232,11 +290,6 @@ const Controls = {
         Game.player.isGrounded = false;
         
         Network.sendJump();
-    },
-    
-    // Прыжок с мобильного
-    mobileJump() {
-        this.jump();
     },
     
     // Стрельба
@@ -268,24 +321,31 @@ const Controls = {
         Game.checkHit();
     },
     
-    // Автострельба для мобильных
+    // Начать стрельбу
     startShooting() {
-        this.isShooting = true;
+        this.touch.isShooting = true;
         this.shoot();
         
         // Интервал для автострельбы
         this.shootInterval = setInterval(() => {
-            if (this.isShooting && Game.isRunning) {
+            if (this.touch.isShooting && Game.isRunning) {
                 this.shoot();
             }
         }, CONFIG.SHOOT_COOLDOWN);
     },
     
+    // Остановить стрельбу
     stopShooting() {
-        this.isShooting = false;
+        this.touch.isShooting = false;
         if (this.shootInterval) {
             clearInterval(this.shootInterval);
         }
+    },
+    
+    // Переключение режима камеры (опционально)
+    toggleCameraMode() {
+        // Можно добавить переключение между от первого и третьего лица
+        Notification.show('Режим камеры переключен');
     },
     
     // Получение вектора движения
@@ -308,11 +368,14 @@ const Controls = {
             // Нормализация диагонального движения
             if (move.length() > 0) {
                 move.normalize().multiplyScalar(CONFIG.PC_MOVE_SPEED);
+                Game.player.isMoving = true;
+            } else {
+                Game.player.isMoving = false;
             }
             
         } else {
-            // Движение на мобильных (исправленное)
-            if (this.touch.isMoving) {
+            // Движение на мобильных
+            if (this.touch.isMoving && (Math.abs(this.touch.moveX) > 0.1 || Math.abs(this.touch.moveY) > 0.1)) {
                 // Используем абсолютные направления относительно камеры
                 const forward = new THREE.Vector3(0, 0, -1);
                 forward.applyAxisAngle(new THREE.Vector3(0, 1, 0), Game.player.rotation.yaw);
@@ -320,13 +383,21 @@ const Controls = {
                 const right = new THREE.Vector3(1, 0, 0);
                 right.applyAxisAngle(new THREE.Vector3(0, 1, 0), Game.player.rotation.yaw);
                 
-                // Правильное смешивание направлений
+                // Смешиваем движения вперед/назад и влево/вправо
                 move.add(forward.clone().multiplyScalar(-this.touch.moveY));
                 move.add(right.clone().multiplyScalar(this.touch.moveX));
                 
                 if (move.length() > 0) {
                     move.normalize().multiplyScalar(CONFIG.MOBILE_MOVE_SPEED);
+                    Game.player.isMoving = true;
                 }
+            } else {
+                Game.player.isMoving = false;
+            }
+            
+            // Обработка прыжка при удержании кнопки
+            if (this.touch.isJumping && Game.player.isGrounded) {
+                this.jump();
             }
         }
         
@@ -359,13 +430,21 @@ const Controls = {
             isRotating: false,
             lastTouchX: 0,
             lastTouchY: 0,
-            touchId: null
+            touchId: null,
+            isJumping: false,
+            isShooting: false
         };
-        this.isShooting = false;
         
         if (this.shootInterval) {
             clearInterval(this.shootInterval);
             this.shootInterval = null;
         }
+        
+        // Сброс визуала джойстика
+        const inner = document.getElementById('moveJoystickInner');
+        if (inner) {
+            inner.style.transform = 'translate(0, 0)';
+        }
     }
 };
+[file content end]
