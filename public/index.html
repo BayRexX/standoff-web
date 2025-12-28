@@ -1,4 +1,4 @@
-[file name]: public/index.html
+[file name]: index.html
 [file content begin]
 <!DOCTYPE html>
 <html lang="ru">
@@ -34,7 +34,8 @@
             </div>
             <button class="btn btn-success" onclick="Game.start()">🎮 НАЧАТЬ ИГРУ</button>
             <p class="server-info">
-                Статус сервера: <span id="serverStatus">Проверка...</span>
+                Сервер: <span id="serverUrl">wss://fps-game-server-raki.onrender.com</span><br>
+                Статус: <span id="serverStatus" style="color: #4CAF50;">✓ Проверка...</span>
             </p>
         </div>
     </div>
@@ -150,32 +151,6 @@
     <script src="game.js"></script>
     
     <script>
-        // Автоматическое определение URL сервера
-        const serverUrl = window.location.origin.replace('http', 'ws');
-        
-        // Обновляем конфиг
-        if (typeof CONFIG !== 'undefined') {
-            CONFIG.SERVER_URL = serverUrl;
-        }
-        
-        // Проверка сервера при загрузке
-        async function checkServer() {
-            try {
-                const response = await fetch('/health');
-                if (response.ok) {
-                    const data = await response.json();
-                    document.getElementById('serverStatus').innerHTML = 
-                        `<span style="color: #4CAF50;">✓ Онлайн</span> (${data.players} игроков)`;
-                } else {
-                    document.getElementById('serverStatus').innerHTML = 
-                        '<span style="color: #ff4444;">✗ Оффлайн</span>';
-                }
-            } catch (error) {
-                document.getElementById('serverStatus').innerHTML = 
-                    '<span style="color: #ff9800;">⚠️ Проверка...</span>';
-            }
-        }
-        
         // Инициализация при загрузке
         window.addEventListener('DOMContentLoaded', () => {
             document.addEventListener('gesturestart', e => e.preventDefault());
@@ -183,9 +158,33 @@
                 if (e.scale !== 1) e.preventDefault();
             }, { passive: false });
             
+            // Проверка статуса сервера
+            async function checkServerStatus() {
+                try {
+                    const statusElement = document.getElementById('serverStatus');
+                    const response = await fetch('https://fps-game-server-raki.onrender.com/health', {
+                        method: 'GET',
+                        mode: 'cors'
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        statusElement.innerHTML = `<span style="color: #4CAF50;">✓ Онлайн</span> (${data.players} игроков)`;
+                        statusElement.style.color = '#4CAF50';
+                    } else {
+                        statusElement.innerHTML = '<span style="color: #ff9800;">⚠️ Ограниченный доступ</span>';
+                        statusElement.style.color = '#ff9800';
+                    }
+                } catch (error) {
+                    console.log('Не удалось проверить сервер:', error);
+                    document.getElementById('serverStatus').innerHTML = 
+                        '<span style="color: #ff9800;">⚠️ Доступ может быть ограничен</span>';
+                }
+            }
+            
             // Проверяем сервер
-            checkServer();
-            setInterval(checkServer, 30000);
+            checkServerStatus();
+            setInterval(checkServerStatus, 30000);
             
             Notification.show('👆 Нажмите "НАЧАТЬ ИГРУ"');
         });
